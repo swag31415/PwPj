@@ -16,6 +16,21 @@ import java.util.Scanner;
 
 public class Utils {
 
+    public class ThingBox implements Serializable {
+
+        private static final long serialVersionUID = -1920932889211266896L;
+
+        private Object thing;
+
+        public ThingBox(Object thing) {
+            this.thing = thing;
+        }
+
+        public Object getThing() {
+            return this.thing;
+        }
+    }
+
     public static void printToLocalFile(String fileName, Serializable print) {
         ObjectOutputStream oStream;
         try {

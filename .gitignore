@@ -13,3 +13,6 @@ bin
 # Ignore Vscode launch files
 .vscode/launch.json
 .vscode/settings.json
+
+# Ignore App Files
+*.pwpj
