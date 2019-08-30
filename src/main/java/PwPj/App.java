@@ -17,7 +17,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
@@ -94,7 +93,8 @@ public class App extends Application {
             titleBox.requestFocus();
         } else {
             bankPane.getPanes().add(new TitledPane(title, new Label(text)));
-            data.put(encoder.encrypt(title, encoder.getKey(new String(encryptedPw))), encoder.encrypt(text, encoder.getKey(new String(encryptedPw))));
+            data.put(encoder.encrypt(title, encoder.getKey(new String(encryptedPw))),
+                    encoder.encrypt(text, encoder.getKey(new String(encryptedPw))));
 
             Utils.printToLocalFile("data.pwpj", data);
 

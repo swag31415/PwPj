@@ -14,8 +14,16 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
+/**
+ * Random static methods I couldn't place elsewhere
+ * 
+ * @author swag31415
+ */
 public class Utils {
 
+    /**
+     * Prints an object @param print to file @param fileName
+     */
     public static void printToLocalFile(String fileName, Serializable print) {
         ObjectOutputStream oStream;
         try {
@@ -30,6 +38,10 @@ public class Utils {
         }
     }
 
+    /**
+     * Reads an object from the file @param fileName (perferably one created through
+     * the method Utils.printToLocalFile(String, Serializable))
+     */
     public static Object getFromLocalFile(String fileName)
             throws FileNotFoundException, IOException, ClassNotFoundException {
         ObjectInputStream oStream;
@@ -42,6 +54,9 @@ public class Utils {
         return out;
     }
 
+    /**
+     * Gets input using a Scanner and System.in
+     */
     public static String getInput() {
         Scanner scanner = new Scanner(System.in);
         String input = scanner.next();
@@ -49,40 +64,42 @@ public class Utils {
         return input;
     }
 
-    public static byte[] getSHA(String input) throws NoSuchAlgorithmException {
-        // Static getInstance method is called with hashing SHA
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-
-        // digest() method called
-        // to calculate message digest of an input
-        // and return array of byte
+    /**
+     * Does the sha256 hash on @param input and @return it
+     */
+    public static byte[] getSHA(String input) {
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) { // This isn't going to happen
+            e.printStackTrace();
+            md = null;
+        }
         return md.digest(input.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Turns the @param hash into a string and @return
+     */
     public static String toHexString(byte[] hash) {
-        // Convert byte array into signum representation
         BigInteger number = new BigInteger(1, hash);
-
-        // Convert message digest into hex value
         StringBuilder hexString = new StringBuilder(number.toString(16));
-
-        // Pad with leading zeros
         while (hexString.length() < 32) {
             hexString.insert(0, '0');
         }
-
         return hexString.toString();
     }
 
+    /**
+     * Hashes @param text and @return as string
+     */
     public static String hash(String text) {
-        try {
-            return toHexString(getSHA(text));
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return toHexString(getSHA(text));
     }
 
+    /**
+     * Hashes @param text with salt @param salt and @return as String
+     */
     public static String hash(String text, String salt) {
         return hash(text + salt);
     }
