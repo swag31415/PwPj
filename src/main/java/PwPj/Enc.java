@@ -1,6 +1,5 @@
 package PwPj;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
@@ -50,7 +49,7 @@ public class Enc {
         try {
             return cipher.doFinal(unencryptedString.getBytes(StandardCharsets.UTF_8));
         } catch (IllegalBlockSizeException | BadPaddingException e) {
-			e.printStackTrace();
+            e.printStackTrace();
         }
         return null;
     }
