@@ -62,18 +62,17 @@ public class App extends Application {
 
     @FXML
     private void TestPassword(ActionEvent event) {
+        String hash = null;
         try {
-            encryptedPw = (byte[]) Utils.getFromLocalFile("megapw.pwpj");
+            hash = (String) Utils.getFromLocalFile("megapw.pwpj");
         } catch (ClassNotFoundException | IOException e) {
             System.err.println("Password file could not be loaded");
         }
 
-        if (encryptedPw == null) {
-
+        if (hash == null) {
+            Utils.printToLocalFile("megapw.pwpj", Utils.hash(PwBox.getText()));
+        } else if (Utils.hash(PwBox.getText()).equals(hash)) {
             encryptedPw = encoder.encrypt(sequence, encoder.getKey(PwBox.getText()));
-            Utils.printToLocalFile("megapw.pwpj", encryptedPw);
-
-        } else if (encoder.decrypt(encryptedPw, encoder.getKey(PwBox.getText())).equals(sequence)) {
             try {
                 data = (HashMap<byte[], byte[]>) Utils.getFromLocalFile("data.pwpj");
             } catch (ClassNotFoundException | IOException e) {
@@ -95,20 +94,19 @@ public class App extends Application {
             titleBox.requestFocus();
         } else {
             bankPane.getPanes().add(new TitledPane(title, new Label(text)));
-            SecretKey key = encoder.getKey(new String(encryptedPw));
-            data.put(encoder.encrypt(title, key), encoder.encrypt(text, key));
+            data.put(encoder.encrypt(title, encoder.getKey(new String(encryptedPw))), encoder.encrypt(text, encoder.getKey(new String(encryptedPw))));
 
             Utils.printToLocalFile("data.pwpj", data);
+
+            titleBox.setText("");
+            entryBox.setText("");
+            titleBox.requestFocus();
         }
     }
 
     @FXML
     void addEntryTitle(ActionEvent event) {
         entryBox.requestFocus();
-    }
-
-    @FXML
-    void attent(MouseEvent event) {
     }
 
     public void setView(String fxmlFile) {
@@ -119,15 +117,19 @@ public class App extends Application {
             e.printStackTrace();
         }
 
-        SecretKey key = encoder.getKey(new String(encryptedPw));
-        for (Entry<byte[], byte[]> entry : data.entrySet()) {
-            ((Accordion) blah).getPanes().add(new TitledPane(encoder.decrypt(entry.getKey(), key),
-                    new Label(encoder.decrypt(entry.getValue(), key))));
-        }
+        loadPanes(blah);
 
         Scene scene = new Scene(blah);
         Stage appStage = (Stage) splashPane.getScene().getWindow();
         appStage.setScene(scene);
         appStage.show();
+    }
+
+    private void loadPanes(Parent blah) {
+        SecretKey key = encoder.getKey(new String(encryptedPw));
+        for (Entry<byte[], byte[]> entry : data.entrySet()) {
+            ((Accordion) blah).getPanes().add(new TitledPane(encoder.decrypt(entry.getKey(), key),
+                    new Label(encoder.decrypt(entry.getValue(), key))));
+        }
     }
 }
