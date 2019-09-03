@@ -30,7 +30,18 @@ dependencies {
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
+
+    runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:win"
 }
 
 // Define the main class for the application
 mainClassName = 'PwPj.App'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'PwPj.Launcher'
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
