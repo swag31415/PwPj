@@ -10,6 +10,7 @@ import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Accordion;
@@ -18,6 +19,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class App extends Application {
@@ -33,6 +35,7 @@ public class App extends Application {
     @FXML
     private Accordion bankPane;
 
+    private static String directory;
     private static HashMap<byte[], byte[]> data;
     private static Enc encoder;
     private static byte[] encryptedPw;
@@ -62,18 +65,26 @@ public class App extends Application {
     @FXML
     private void TestPassword(ActionEvent event) {
         String hash = null;
+
         try {
-            hash = (String) Utils.getFromLocalFile("megapw.pwpj");
+            directory = (String) Utils.getFromLocalFile("dir.pwpj");
+        } catch (ClassNotFoundException | IOException e) {
+            directory = new DirectoryChooser().showDialog(splashPane.getScene().getWindow()).getAbsolutePath() + "/";
+            Utils.printToLocalFile("dir.pwpj", directory);
+        }
+
+        try {
+            hash = (String) Utils.getFromLocalFile(directory + "megapw.pwpj");
         } catch (ClassNotFoundException | IOException e) {
             System.err.println("Password file could not be loaded");
         }
 
         if (hash == null) {
-            Utils.printToLocalFile("megapw.pwpj", Utils.hash(PwBox.getText()));
+            Utils.printToLocalFile(directory + "megapw.pwpj", Utils.hash(PwBox.getText()));
         } else if (Utils.hash(PwBox.getText()).equals(hash)) {
             encryptedPw = encoder.encrypt(sequence, encoder.getKey(PwBox.getText()));
             try {
-                data = (HashMap<byte[], byte[]>) Utils.getFromLocalFile("data.pwpj");
+                data = (HashMap<byte[], byte[]>) Utils.getFromLocalFile(directory + "data.pwpj");
             } catch (ClassNotFoundException | IOException e) {
                 e.printStackTrace();
             }
@@ -95,8 +106,7 @@ public class App extends Application {
             bankPane.getPanes().add(new TitledPane(title, new Label(text)));
             data.put(encoder.encrypt(title, encoder.getKey(new String(encryptedPw))),
                     encoder.encrypt(text, encoder.getKey(new String(encryptedPw))));
-
-            Utils.printToLocalFile("data.pwpj", data);
+            Utils.printToLocalFile(directory + "data.pwpj", data);
 
             titleBox.setText("");
             entryBox.setText("");
