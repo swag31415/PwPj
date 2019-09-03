@@ -11,6 +11,7 @@ plugins {
     id 'java'
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.8'
+    id 'edu.sc.seis.launch4j' version '2.4.6'
 }
 
 javafx {
