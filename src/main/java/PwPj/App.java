@@ -1,145 +1,69 @@
 package PwPj;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map.Entry;
+import java.net.URL;
 
-import javax.crypto.SecretKey;
+import javax.sound.midi.ControllerEventListener;
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Accordion;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
-import javafx.scene.layout.AnchorPane;
-import javafx.stage.DirectoryChooser;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 public class App extends Application {
 
-    @FXML
-    private PasswordField PwBox;
-    @FXML
-    private AnchorPane splashPane;
-    @FXML
-    private TextField titleBox;
-    @FXML
-    private TextField entryBox;
-    @FXML
-    private Accordion bankPane;
+    private static Stage pStage;
+    private static App instance;
 
-    private static String directory;
-    private static HashMap<byte[], byte[]> data;
-    private static Enc encoder;
-    private static byte[] encryptedPw;
+    public enum fxmlFiles {
+        Splash("SplashGUI.fxml");
 
-    private static final String sequence = "c+=2a^L&z6&Yz6sBh@B5E#zn7BYKb7H-5-Z+cT4r@887hVATbWpnWbuh2VDH$Cx-";
+        private String file;
+
+        private fxmlFiles(String file) {
+            this.file = file;
+        }
+
+        public String get() {
+            return this.file;
+        }
+    }
 
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
-    public void init() throws Exception {
-        data = new HashMap<byte[], byte[]>();
-        encoder = new Enc();
-    }
+    public void start(Stage primaryStage) throws IOException {
+        App.pStage = primaryStage;
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getClassLoader().getResource("Splash.fxml"));
-        AnchorPane pane = loader.<AnchorPane>load();
+        primaryStage.setResizable(false);
 
-        primaryStage.setScene(new Scene(pane));
+        App.loadScene(fxmlFiles.Splash, App.pStage);
         primaryStage.show();
     }
 
-    @FXML
-    private void TestPassword(ActionEvent event) {
-        String hash = null;
-
-        try {
-            directory = (String) Utils.getFromLocalFile("dir.pwpj");
-        } catch (ClassNotFoundException | IOException e) {
-            directory = new DirectoryChooser().showDialog(splashPane.getScene().getWindow()).getAbsolutePath() + "/";
-            Utils.printToLocalFile("dir.pwpj", directory);
-        }
-
-        try {
-            hash = (String) Utils.getFromLocalFile(directory + "megapw.pwpj");
-        } catch (ClassNotFoundException | IOException e) {
-            System.err.println("Password file could not be loaded");
-        }
-
-        if (hash == null) {
-            Utils.printToLocalFile(directory + "megapw.pwpj", Utils.hash(PwBox.getText()));
-        } else if (Utils.hash(PwBox.getText()).equals(hash)) {
-            encryptedPw = encoder.encrypt(sequence, encoder.getKey(PwBox.getText()));
-            try {
-                data = (HashMap<byte[], byte[]>) Utils.getFromLocalFile(directory + "data.pwpj");
-            } catch (ClassNotFoundException | IOException e) {
-                e.printStackTrace();
-            }
-            setView("Bank.fxml");
-
-        } else {
-            System.out.println("Try Again?");
-        }
+    @Override
+    public void init() {
+        App.instance = this;
     }
 
-    @FXML
-    void addEntry(ActionEvent event) {
-        String title = titleBox.getText();
-        String text = entryBox.getText();
-
-        if (title == "") {
-            titleBox.requestFocus();
-        } else {
-            bankPane.getPanes().add(new TitledPane(title, new Label(text)));
-            data.put(encoder.encrypt(title, encoder.getKey(new String(encryptedPw))),
-                    encoder.encrypt(text, encoder.getKey(new String(encryptedPw))));
-            Utils.printToLocalFile(directory + "data.pwpj", data);
-
-            titleBox.setText("");
-            entryBox.setText("");
-            titleBox.requestFocus();
-        }
+    public static <T extends ControllerEventListener> T loadScene(fxmlFiles file, Stage stage) throws IOException {
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(App.getResource(file.get()));
+        Pane pane = loader.<Pane>load();
+        stage.setScene(new Scene(pane));
+        return loader.getController();
     }
 
-    @FXML
-    void addEntryTitle(ActionEvent event) {
-        entryBox.requestFocus();
+    public static <T extends Pane> T getFxml(fxmlFiles file) throws IOException {
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(App.getResource(file.get()));
+        return loader.<T>load();
     }
 
-    public void setView(String fxmlFile) {
-        Parent blah = null;
-        try {
-            blah = FXMLLoader.load(getClass().getClassLoader().getResource(fxmlFile));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        loadPanes(blah);
-
-        Scene scene = new Scene(blah);
-        Stage appStage = (Stage) splashPane.getScene().getWindow();
-        appStage.setScene(scene);
-        appStage.show();
-    }
-
-    private void loadPanes(Parent blah) {
-        SecretKey key = encoder.getKey(new String(encryptedPw));
-        for (Entry<byte[], byte[]> entry : data.entrySet()) {
-            ((Accordion) blah).getPanes().add(new TitledPane(encoder.decrypt(entry.getKey(), key),
-                    new Label(encoder.decrypt(entry.getValue(), key))));
-        }
+    public static URL getResource(String file) {
+        return App.instance.getClass().getClassLoader().getResource(file);
     }
 }
